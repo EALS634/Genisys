@@ -138,6 +138,7 @@ use pocketmine\network\protocol\PlayerActionPacket;
 use pocketmine\network\protocol\PlayStatusPacket;
 use pocketmine\network\protocol\RespawnPacket;
 use pocketmine\network\protocol\SetDifficultyPacket;
+use pocketmine\network\protocol\SetEntityDataPacket;
 use pocketmine\network\protocol\SetEntityMotionPacket;
 use pocketmine\network\protocol\SetHealthPacket;
 use pocketmine\network\protocol\SetSpawnPositionPacket;
@@ -293,6 +294,8 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 
 	/** @var Item[] */
 	protected $personalCreativeItems = [];
+
+	protected $additionalChar;
 
 	public function linkHookToPlayer(FishingHook $entity){
 		if($entity->isAlive()){
@@ -1787,7 +1790,7 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 		if(parent::setMotion($mot)){
 			if($this->chunk !== null){
 				$this->level->addEntityMotion($this->chunk->getX(), $this->chunk->getZ(), $this->getId(), $this->motionX, $this->motionY, $this->motionZ);
-				$pk = new SetEntityMotionPacket();
+				$pk = new SetEntityMotionPacket($this->additionalChar);
 				$pk->entities[] = [0, $mot->x, $mot->y, $mot->z];
 				$this->dataPacket($pk);
 			}
@@ -2452,6 +2455,10 @@ class Player extends Human implements CommandSender, InventoryHolder, ChunkLoade
 			$pk->slots = array_merge(Item::getCreativeItems(), $this->personalCreativeItems);
 			$this->dataPacket($pk);
 		}
+		$pk = new SetEntityDataPacket();
+ 		$pk->eid = 0;
+ 		$pk->metadata = [self::DATA_LEAD_HOLDER => [self::DATA_TYPE_LONG, -1]];
+ 		$this->dataPacket($pk);
 		$this->forceMovement = $this->teleportPosition = $this->getPosition();
 	}
 
